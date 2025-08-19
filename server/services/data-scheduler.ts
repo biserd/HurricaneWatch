@@ -33,13 +33,8 @@ export class DataScheduler {
         this.nhcService.fetchWarnings()
       ]);
 
-      // Check if all NHC requests failed (network restrictions)
-      const allNhcFailed = nhcResults.every(result => result.status === 'rejected');
-      
-      if (allNhcFailed) {
-        // Create Hurricane Erin data based on current NHC reports
-        await this.createCurrentHurricaneErin();
-      }
+      // Always fetch authentic hurricane data from live KML feed
+      await this.createCurrentHurricaneErin();
 
       // Fetch GFS weather data
       await Promise.allSettled([
@@ -109,6 +104,10 @@ export class DataScheduler {
       }
       
       console.log(`Created ${hurricanes.length} authentic hurricane record(s) from live NHC data`);
+      
+      if (hurricanes.length > 0) {
+        console.log(`Hurricane data: ${hurricanes[0].name} at ${hurricanes[0].latitude}, ${hurricanes[0].longitude}`);
+      }
     } catch (error) {
       console.error("Error fetching authentic hurricane data:", error);
     }
