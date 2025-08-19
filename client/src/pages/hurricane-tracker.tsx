@@ -6,6 +6,8 @@ import StormDetailsModal from "@/components/storm-details-modal";
 import DataAttribution from "@/components/data-attribution";
 import { DataSourceStatus } from "@/components/data-source-status";
 import { AIPredictionPanel } from "@/components/ai-prediction-panel";
+import { OverlayControls } from "@/components/overlay-controls";
+import { MobileLayerToggle } from "@/components/mobile-layer-toggle";
 import { useHurricaneData } from "@/hooks/use-hurricane-data";
 import { useQuery } from "@tanstack/react-query";
 import type { Hurricane } from "@shared/schema";
@@ -112,6 +114,21 @@ export default function HurricaneTracker() {
           activeLayers={activeLayers}
           currentTime={currentTime}
           onStormSelect={setSelectedStorm}
+        />
+        
+        {/* Overlay Controls - positioned over map (desktop) */}
+        <div className="hidden md:block">
+          <OverlayControls
+            activeLayers={activeLayers}
+            onLayerToggle={handleToggleLayer}
+            className="top-4 right-4"
+          />
+        </div>
+
+        {/* Mobile Layer Toggle - simple clean view toggle */}
+        <MobileLayerToggle
+          activeLayers={activeLayers}
+          onLayerToggle={handleToggleLayer}
         />
       </div>
 
