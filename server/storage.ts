@@ -28,6 +28,8 @@ export interface IStorage {
   getHurricanePredictions(hurricaneId?: string): Promise<HurricanePrediction[]>;
   getLatestPrediction(hurricaneId: string): Promise<HurricanePrediction | undefined>;
   createHurricanePrediction(data: InsertHurricanePrediction): Promise<HurricanePrediction>;
+  getAIPredictions(hurricaneId?: string): Promise<HurricanePrediction[]>;
+  createAIPrediction(data: InsertHurricanePrediction): Promise<HurricanePrediction>;
 }
 
 export class MemStorage implements IStorage {
@@ -205,6 +207,14 @@ export class MemStorage implements IStorage {
     };
     this.predictions.set(id, prediction);
     return prediction;
+  }
+
+  async getAIPredictions(hurricaneId?: string): Promise<HurricanePrediction[]> {
+    return this.getHurricanePredictions(hurricaneId);
+  }
+
+  async createAIPrediction(insertPrediction: InsertHurricanePrediction): Promise<HurricanePrediction> {
+    return this.createHurricanePrediction(insertPrediction);
   }
 }
 

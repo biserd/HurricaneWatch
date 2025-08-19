@@ -132,6 +132,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // General predictions endpoint (for all hurricanes)
+  app.get("/api/predictions", async (req, res) => {
+    try {
+      const { hurricaneId } = req.query;
+      const predictions = await storage.getHurricanePredictions(hurricaneId as string);
+      res.json(predictions);
+    } catch (error) {
+      console.error('Error fetching AI predictions:', error);
+      res.status(500).json({ error: 'Failed to fetch AI predictions' });
+    }
+  });
+
   // Hurricane prediction endpoints
   app.get("/api/hurricanes/:id/predictions", async (req, res) => {
     try {

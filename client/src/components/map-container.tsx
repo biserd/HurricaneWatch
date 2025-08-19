@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { useWeatherData } from "@/hooks/use-weather-data";
 import { useOceanData } from "@/hooks/use-ocean-data";
+import { useAllAIPredictions } from "@/hooks/use-ai-predictions";
 import { useQuery } from "@tanstack/react-query";
-import type { Hurricane } from "@shared/schema";
+import type { Hurricane, HurricanePrediction } from "@shared/schema";
 
 interface MapContainerProps {
   hurricanes: Hurricane[];
@@ -33,6 +34,7 @@ export default function MapContainer({ hurricanes, activeLayers, currentTime, on
 
   const { data: weatherData } = useWeatherData();
   const { data: oceanData } = useOceanData();
+  const { data: aiPredictions } = useAllAIPredictions();
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -190,7 +192,7 @@ export default function MapContainer({ hurricanes, activeLayers, currentTime, on
       }
     }
 
-  }, [mapReady, activeLayers, nhcCones, nhcTracks, nhcWarnings]);
+  }, [mapReady, activeLayers, nhcCones, nhcTracks, nhcWarnings, aiPredictions]);
 
   // Update hurricane markers
   useEffect(() => {
@@ -253,6 +255,160 @@ export default function MapContainer({ hurricanes, activeLayers, currentTime, on
       });
     }
   }, [mapReady, hurricanes, onStormSelect]);
+
+  // Update AI prediction tracks
+  useEffect(() => {
+    if (!mapReady || !mapInstanceRef.current || !aiPredictions) return;
+
+    const map = mapInstanceRef.current;
+
+    // Create prediction track features
+    const predictionFeatures = aiPredictions
+      .filter(prediction => {
+        const pathData = prediction.predictionData as any;
+        return pathData?.pathPrediction?.coordinates;
+      })
+      .map(prediction => {
+        const pathData = prediction.predictionData as any;
+        const coordinates = pathData.pathPrediction?.coordinates || [];
+        
+        if (coordinates.length < 2) return null;
+
+        return {
+          type: 'Feature' as const,
+          properties: {
+            hurricaneId: prediction.hurricaneId,
+            confidence: prediction.confidence,
+            predictionType: 'path'
+          },
+          geometry: {
+            type: 'LineString' as const,
+            coordinates: coordinates
+          }
+        };
+      })
+      .filter((feature): feature is NonNullable<typeof feature> => feature !== null);
+
+    // Create uncertainty cone features
+    const uncertaintyFeatures = aiPredictions
+      .filter(prediction => {
+        const pathData = prediction.predictionData as any;
+        return pathData?.pathPrediction?.coordinates;
+      })
+      .map(prediction => {
+        const pathData = prediction.predictionData as any;
+        const coordinates = pathData.pathPrediction?.coordinates || [];
+        const confidence = prediction.confidence || 0.7;
+        
+        if (coordinates.length < 2) return null;
+
+        // Create uncertainty cone around the predicted path
+        const coneCoordinates = [];
+        const uncertaintyRadius = (1 - confidence) * 100; // km uncertainty
+        
+        // Convert to approximate degrees (rough conversion for visualization)
+        const radiusDegrees = uncertaintyRadius / 111; // 1 degree ≈ 111 km
+        
+        for (let i = 0; i < coordinates.length; i++) {
+          const [lng, lat] = coordinates[i];
+          const factor = Math.min(1, i / (coordinates.length - 1)); // Increase uncertainty over time
+          const currentRadius = radiusDegrees * (0.3 + factor * 0.7);
+          
+          // Create points around the track point
+          const points = [];
+          for (let angle = 0; angle < 360; angle += 45) {
+            const radians = (angle * Math.PI) / 180;
+            const dlng = currentRadius * Math.cos(radians);
+            const dlat = currentRadius * Math.sin(radians);
+            points.push([lng + dlng, lat + dlat]);
+          }
+          coneCoordinates.push(points);
+        }
+
+        // Create a polygon representing the uncertainty cone
+        if (coneCoordinates.length >= 2) {
+          const conePolygon = [];
+          // Forward pass
+          for (let i = 0; i < coneCoordinates.length; i++) {
+            conePolygon.push(coneCoordinates[i][2]); // Right side
+          }
+          // Backward pass
+          for (let i = coneCoordinates.length - 1; i >= 0; i--) {
+            conePolygon.push(coneCoordinates[i][6]); // Left side
+          }
+          conePolygon.push(conePolygon[0]); // Close polygon
+
+          return {
+            type: 'Feature' as const,
+            properties: {
+              hurricaneId: prediction.hurricaneId,
+              confidence: prediction.confidence,
+              predictionType: 'uncertainty'
+            },
+            geometry: {
+              type: 'Polygon' as const,
+              coordinates: [conePolygon]
+            }
+          };
+        }
+        return null;
+      })
+      .filter((feature): feature is NonNullable<typeof feature> => feature !== null);
+
+    const allPredictionFeatures = {
+      type: 'FeatureCollection',
+      features: [...predictionFeatures, ...uncertaintyFeatures]
+    };
+
+    // Update prediction tracks source
+    if (map.getSource('ai-predictions')) {
+      map.getSource('ai-predictions').setData(allPredictionFeatures);
+    } else {
+      map.addSource('ai-predictions', {
+        type: 'geojson',
+        data: allPredictionFeatures
+      });
+
+      // Add uncertainty cone layer
+      map.addLayer({
+        id: 'prediction-uncertainty',
+        type: 'fill',
+        source: 'ai-predictions',
+        filter: ['==', ['get', 'predictionType'], 'uncertainty'],
+        paint: {
+          'fill-color': '#3b82f6',
+          'fill-opacity': 0.2
+        }
+      });
+
+      // Add prediction track layer
+      map.addLayer({
+        id: 'prediction-tracks',
+        type: 'line',
+        source: 'ai-predictions',
+        filter: ['==', ['get', 'predictionType'], 'path'],
+        paint: {
+          'line-color': '#3b82f6',
+          'line-width': 3,
+          'line-dasharray': [2, 2]
+        }
+      });
+
+      // Add prediction points
+      map.addLayer({
+        id: 'prediction-points',
+        type: 'circle',
+        source: 'ai-predictions',
+        filter: ['==', ['get', 'predictionType'], 'path'],
+        paint: {
+          'circle-radius': 4,
+          'circle-color': '#3b82f6',
+          'circle-stroke-color': '#ffffff',
+          'circle-stroke-width': 1
+        }
+      });
+    }
+  }, [mapReady, aiPredictions]);
 
   // Update weather layers
   useEffect(() => {
