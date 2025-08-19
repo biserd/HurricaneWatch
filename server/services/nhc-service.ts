@@ -31,7 +31,12 @@ export class NHCService {
           continue;
         }
         
-        const data = await response.json();
+        let data;
+        if (url.includes('.kml')) {
+          data = await response.text(); // KML is XML, not JSON
+        } else {
+          data = await response.json();
+        }
         
         // Store the authentic data
         await storage.createNhcData({
