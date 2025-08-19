@@ -259,39 +259,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const latestWeather = await storage.getLatestWeatherData('pressure');
       const latestOcean = await storage.getLatestOceanData('currents');
 
+      // Determine if we have live data
+      const hasLiveHurricanes = hurricanes.length > 0;
+      const hasAIEnabled = !!process.env.OPENAI_API_KEY;
+      const hasWeatherData = !!latestWeather;
+      const hasOceanData = !!latestOcean;
+      
+      // System is LIVE if we have authentic hurricane data and AI
+      const systemStatus = hasLiveHurricanes && hasAIEnabled ? "LIVE" : "limited";
+
       // Check data source status
       const dataSourceStatus = {
         nhc: {
-          status: 'unavailable',
-          message: 'External API access restricted in demo environment',
-          lastUpdate: latestNhc?.timestamp
+          status: hasLiveHurricanes ? 'operational' : 'unavailable',
+          message: hasLiveHurricanes ? 
+            'Live hurricane data from National Hurricane Center' : 
+            'No active storms or external API access restricted',
+          lastUpdate: latestNhc?.timestamp || hurricanes[0]?.lastUpdate
         },
         gfs: {
-          status: 'unavailable', 
-          message: 'External API access restricted in demo environment',
+          status: hasWeatherData ? 'operational' : 'unavailable', 
+          message: hasWeatherData ?
+            'Weather forecast model data available' :
+            'External GFS API access may be restricted',
           lastUpdate: latestWeather?.timestamp
         },
         cmems: {
-          status: process.env.CMEMS_USERNAME ? 'configured' : 'needs_credentials',
+          status: process.env.CMEMS_USERNAME ? 
+            (hasOceanData ? 'operational' : 'configured') : 'needs_credentials',
           message: process.env.CMEMS_USERNAME ? 
-            'Credentials configured - external access restricted in demo' : 
-            'CMEMS credentials required',
+            (hasOceanData ? 'Ocean current and wave data available' : 'Credentials configured') : 
+            'CMEMS credentials required for ocean data',
           lastUpdate: latestOcean?.timestamp
         }
       };
 
       res.json({
         activeStorms: hurricanes.length,
-        lastNhcUpdate: latestNhc?.timestamp,
+        lastNhcUpdate: latestNhc?.timestamp || hurricanes[0]?.lastUpdate,
         lastWeatherUpdate: latestWeather?.timestamp,
         lastOceanUpdate: latestOcean?.timestamp,
-        status: "demo_mode",
+        status: systemStatus,
         dataSources: dataSourceStatus,
         aiPredictions: {
-          enabled: !!process.env.OPENAI_API_KEY,
-          status: "ready"
+          enabled: hasAIEnabled,
+          status: hasAIEnabled ? "ready" : "needs_api_key"
         },
-        message: 'Hurricane tracker ready with AI predictions - external data sources restricted in demo environment'
+        message: systemStatus === "LIVE" ? 
+          'Hurricane Tracker LIVE - Authentic NHC data with AI-powered predictions' :
+          'Hurricane Tracker ready - Some external data sources may be restricted'
       });
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch status" });
