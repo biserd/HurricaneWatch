@@ -4,41 +4,52 @@ import { mockStormCones, mockStormTracks, mockWarnings } from "./mock-data";
 
 export class NHCService {
   private readonly baseUrl = "https://idpgis.ncep.noaa.gov/arcgis/rest/services/NWS_Forecasts_Guidance_Warnings/NHC_Atl_trop_cyclones/MapServer";
+  private readonly altUrl = "https://www.nhc.noaa.gov/gis/rest/services/nhc_at_public_layers/hurricanes/MapServer";
   private readonly kmlUrl = "https://www.nhc.noaa.gov/gis/kml/nhc_active.kml";
+  private readonly rssUrl = "https://www.nhc.noaa.gov/index-at.xml";
 
   async fetchStormCones(): Promise<any> {
-    try {
-      const url = `${this.baseUrl}/query?where=1=1&outFields=*&f=json`;
-      const response = await fetch(url);
-      
-      if (!response.ok) {
-        throw new Error(`NHC API error: ${response.status}`);
+    const endpoints = [
+      `${this.baseUrl}/query?where=1=1&outFields=*&f=json`,
+      `${this.altUrl}/0/query?where=1=1&outFields=*&f=json`,
+      `https://www.nhc.noaa.gov/gis/forecast/archive/al052025_5day_007.zip`,
+      this.kmlUrl
+    ];
+    
+    for (const url of endpoints) {
+      try {
+        console.log(`Attempting to fetch from: ${url}`);
+        const response = await fetch(url, {
+          headers: {
+            'User-Agent': 'Hurricane-Tracker/1.0',
+            'Accept': 'application/json, application/xml, */*'
+          }
+        });
+        
+        if (!response.ok) {
+          console.log(`Failed with status ${response.status}`);
+          continue;
+        }
+        
+        const data = await response.json();
+        
+        // Store the authentic data
+        await storage.createNhcData({
+          timestamp: new Date(),
+          dataType: 'cones',
+          geoJsonData: data,
+          stormId: null
+        });
+        
+        console.log('Successfully fetched authentic NHC cone data');
+        return data;
+      } catch (error) {
+        console.log(`Failed to fetch from ${url}:`, error instanceof Error ? error.message : 'Unknown error');
+        continue;
       }
-      
-      const data = await response.json();
-      
-      // Store the data
-      await storage.createNhcData({
-        timestamp: new Date(),
-        dataType: 'cones',
-        geoJsonData: data,
-        stormId: null
-      });
-      
-      return data;
-    } catch (error) {
-      console.error('Error fetching NHC cone data:', error);
-      
-      // Store error information for system status
-      await storage.createNhcData({
-        timestamp: new Date(),
-        dataType: 'cones',
-        geoJsonData: null,
-        stormId: null
-      });
-      
-      throw new Error('NHC cone data unavailable - external API connection failed');
     }
+    
+    throw new Error('All NHC endpoints failed - network connectivity issues');
   }
 
   async fetchStormTracks(): Promise<any> {
