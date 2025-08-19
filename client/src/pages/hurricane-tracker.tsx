@@ -132,24 +132,28 @@ export default function HurricaneTracker() {
         />
       </div>
 
-      {/* Control Panel */}
-      <ControlPanel
-        hurricanes={hurricanes}
-        activeLayers={activeLayers}
-        onToggleLayer={handleToggleLayer}
-        onStormSelect={setSelectedStorm}
-        isLoading={hurricanesLoading}
-      />
+      {/* Control Panel - hidden on mobile for clean view */}
+      <div className="hidden md:block">
+        <ControlPanel
+          hurricanes={hurricanes}
+          activeLayers={activeLayers}
+          onToggleLayer={handleToggleLayer}
+          onStormSelect={setSelectedStorm}
+          isLoading={hurricanesLoading}
+        />
+      </div>
 
-      {/* Time Controls */}
-      <TimeControls
-        currentTime={currentTime}
-        isPlaying={isPlaying}
-        animationSpeed={animationSpeed}
-        onTimeStepUpdate={handleTimeStepUpdate}
-        onTogglePlayPause={handleTogglePlayPause}
-        onAnimationSpeedChange={setAnimationSpeed}
-      />
+      {/* Time Controls - hidden on mobile for clean view */}
+      <div className="hidden md:block">
+        <TimeControls
+          currentTime={currentTime}
+          isPlaying={isPlaying}
+          animationSpeed={animationSpeed}
+          onTimeStepUpdate={handleTimeStepUpdate}
+          onTogglePlayPause={handleTogglePlayPause}
+          onAnimationSpeedChange={setAnimationSpeed}
+        />
+      </div>
 
       {/* Storm Details Modal */}
       {selectedStorm && (
@@ -159,8 +163,8 @@ export default function HurricaneTracker() {
         />
       )}
 
-      {/* Data Source Status */}
-      <div className="absolute bottom-16 sm:bottom-4 right-2 sm:right-4 z-40 w-72 sm:w-80">
+      {/* Data Source Status - hidden on mobile for clean view */}
+      <div className="hidden md:block absolute bottom-16 sm:bottom-4 right-2 sm:right-4 z-40 w-72 sm:w-80">
         <DataSourceStatus />
       </div>
 
