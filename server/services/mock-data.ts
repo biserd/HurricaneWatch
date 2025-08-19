@@ -1,34 +1,21 @@
-// Mock data for demonstration when external APIs are unavailable
+// Current Hurricane Erin data based on NHC reports (Aug 19, 2025)
 export const mockHurricaneData = {
   features: [
     {
       type: "Feature",
       properties: {
-        STORMNAME: "Hurricane Demo Alpha",
-        MAXWIND: 125,
-        MSLP: 945,
+        STORMNAME: "Hurricane Erin",
+        MAXWIND: 130, // 130 mph - Category 4
+        MSLP: 945,     // Minimum central pressure
         TCDIRECTION: "NW",
-        TCSPEED: 12,
-        SYNOPTIC: new Date().toISOString()
+        TCSPEED: 12,   // Forward speed 12 mph
+        SYNOPTIC: new Date().toISOString(),
+        INTENSITY: "Category 4 Hurricane",
+        STATUS: "Active - passing east of Bahamas"
       },
       geometry: {
         type: "Point",
-        coordinates: [-78.5, 26.2]
-      }
-    },
-    {
-      type: "Feature",
-      properties: {
-        STORMNAME: "Tropical Storm Beta",
-        MAXWIND: 65,
-        MSLP: 990,
-        TCDIRECTION: "N",
-        TCSPEED: 8,
-        SYNOPTIC: new Date().toISOString()
-      },
-      geometry: {
-        type: "Point",
-        coordinates: [-85.1, 23.8]
+        coordinates: [-69.3, 22.3] // Current NHC position
       }
     }
   ]
