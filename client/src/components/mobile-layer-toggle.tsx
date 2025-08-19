@@ -37,18 +37,9 @@ export function MobileLayerToggle({ activeLayers, onLayerToggle }: MobileLayerTo
       'nhc-warnings'
     ];
 
+    // Force toggle all overlay layers regardless of current state
     layersToToggle.forEach(layerId => {
-      if (newState) {
-        // Show overlays - turn them on if they weren't already
-        if (!activeLayers[layerId]) {
-          onLayerToggle(layerId);
-        }
-      } else {
-        // Hide overlays - turn them off if they were on
-        if (activeLayers[layerId]) {
-          onLayerToggle(layerId);
-        }
-      }
+      onLayerToggle(layerId);
     });
   };
 
@@ -67,23 +58,14 @@ export function MobileLayerToggle({ activeLayers, onLayerToggle }: MobileLayerTo
   return (
     <div className="absolute top-20 right-4 z-20">
       <Button
-        variant={showOverlays ? "default" : "outline"}
+        variant={showOverlays ? "outline" : "default"}
         size="sm"
         onClick={handleToggleOverlays}
         className="bg-white/90 backdrop-blur-sm border shadow-lg hover:bg-white/95 text-gray-900"
         data-testid="mobile-overlay-toggle"
       >
-        {showOverlays ? (
-          <>
-            <EyeOff className="h-4 w-4 mr-2" />
-            Clean View
-          </>
-        ) : (
-          <>
-            <Eye className="h-4 w-4 mr-2" />
-            Show Data ({getActiveOverlayCount()})
-          </>
-        )}
+        <EyeOff className="h-4 w-4 mr-2" />
+        Toggle Overlays ({getActiveOverlayCount()})
       </Button>
     </div>
   );
