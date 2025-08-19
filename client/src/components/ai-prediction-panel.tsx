@@ -137,7 +137,7 @@ export function AIPredictionPanel({ hurricaneId, hurricaneName }: AIPredictionPa
         ) : (
           <>
             {/* Prediction Summary */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4" data-testid="prediction-summary">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4" data-testid="prediction-summary">
               <div className="text-center">
                 <div className="text-2xl font-bold">{Math.round(prediction.confidence * 100)}%</div>
                 <div className="text-sm text-muted-foreground">Confidence</div>
@@ -200,8 +200,8 @@ export function AIPredictionPanel({ hurricaneId, hurricaneName }: AIPredictionPa
             {/* Intensity Forecast */}
             {prediction.predictionData?.intensityForecast && (
               <div>
-                <h4 className="font-semibold mb-2">Intensity Forecast</h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <h4 className="font-semibold mb-2 text-sm sm:text-base">Intensity Forecast</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 text-sm">
                   <div>
                     <div className="font-medium">Peak Winds</div>
                     <div className="text-2xl font-bold text-red-500">

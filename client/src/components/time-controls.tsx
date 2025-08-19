@@ -61,17 +61,17 @@ export default function TimeControls({
   };
 
   return (
-    <div className="absolute bottom-4 left-4 right-4 bg-gray-800/90 backdrop-blur-sm rounded-xl border border-gray-700/50 p-4 shadow-2xl">
-      <div className="flex items-center space-x-4">
+    <div className="absolute bottom-2 sm:bottom-4 left-2 sm:left-4 right-2 sm:right-4 bg-gray-800/90 backdrop-blur-sm rounded-xl border border-gray-700/50 p-2 sm:p-4 shadow-2xl">
+      <div className="flex items-center space-x-2 sm:space-x-4 overflow-x-auto">
         
         {/* Playback Controls */}
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
           <button 
-            className="p-2 hover:bg-gray-700 rounded-lg transition-colors" 
+            className="p-1.5 sm:p-2 hover:bg-gray-700 rounded-lg transition-colors" 
             onClick={handlePreviousTime}
             data-testid="button-previous-time"
           >
-            <i className="fas fa-step-backward text-gray-400"></i>
+            <i className="fas fa-step-backward text-gray-400 text-sm"></i>
           </button>
           
           <button 

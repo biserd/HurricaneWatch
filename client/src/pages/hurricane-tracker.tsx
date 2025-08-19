@@ -76,37 +76,37 @@ export default function HurricaneTracker() {
     <div className="h-screen w-screen relative overflow-hidden bg-gray-900 text-white">
       {/* Header */}
       <header className="absolute top-0 left-0 right-0 z-50 bg-gray-900/90 backdrop-blur-sm border-b border-gray-700/50">
-        <div className="px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-3">
-              <i className="fas fa-hurricane text-hurricane-500 text-2xl animate-spin" style={{ animation: 'spin 8s linear infinite' }}></i>
+        <div className="px-3 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+          <div className="flex items-center space-x-2 sm:space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <i className="fas fa-hurricane text-hurricane-500 text-xl sm:text-2xl animate-spin" style={{ animation: 'spin 8s linear infinite' }}></i>
               <div>
-                <h1 className="text-xl font-bold">Hurricane Tracker</h1>
-                <p className="text-xs text-gray-400">Real-time Storm Analysis & Forecasting</p>
+                <h1 className="text-lg sm:text-xl font-bold">Hurricane Tracker</h1>
+                <p className="text-xs text-gray-400 hidden sm:block">Real-time Storm Analysis & Forecasting</p>
               </div>
             </div>
           </div>
           
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             {/* Live Data Indicator */}
-            <div className="flex items-center space-x-2 text-sm">
+            <div className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-gray-300">Live Data</span>
-              <span className="text-xs text-gray-400">
+              <span className="text-gray-300 hidden sm:inline">Live Data</span>
+              <span className="text-xs text-gray-400 hidden md:inline">
                 {systemStatus?.lastNhcUpdate ? `Updated ${new Date(systemStatus.lastNhcUpdate).toLocaleTimeString()}` : 'Loading...'}
               </span>
             </div>
             
             {/* Settings */}
             <button className="p-2 hover:bg-gray-700 rounded-lg transition-colors" data-testid="button-settings">
-              <i className="fas fa-cog text-gray-400"></i>
+              <i className="fas fa-cog text-gray-400 text-sm sm:text-base"></i>
             </button>
           </div>
         </div>
       </header>
 
       {/* Main Map Container */}
-      <div className="absolute inset-0 pt-20">
+      <div className="absolute inset-0 pt-16 sm:pt-20">
         <MapContainer 
           hurricanes={hurricanes}
           activeLayers={activeLayers}
@@ -143,7 +143,7 @@ export default function HurricaneTracker() {
       )}
 
       {/* Data Source Status */}
-      <div className="absolute bottom-4 right-4 z-40 w-80">
+      <div className="absolute bottom-16 sm:bottom-4 right-2 sm:right-4 z-40 w-72 sm:w-80">
         <DataSourceStatus />
       </div>
 

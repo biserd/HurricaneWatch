@@ -122,7 +122,7 @@ CURRENT HURRICANE DATA:
 - Minimum Central Pressure: ${hurricane.pressure} mb
 - Movement: ${hurricane.movement}
 - Current Category: ${hurricane.category}
-- Last Update: ${hurricane.lastUpdate ? new Date(hurricane.lastUpdate).toISOString() : new Date().toISOString()}
+- Last Update: ${hurricane.lastUpdate && hurricane.lastUpdate instanceof Date && !isNaN(hurricane.lastUpdate.getTime()) ? hurricane.lastUpdate.toISOString() : new Date().toISOString()}
 
 ENVIRONMENTAL CONDITIONS:
 - Sea Surface Temperature: ${weather.seaTemperature}°C

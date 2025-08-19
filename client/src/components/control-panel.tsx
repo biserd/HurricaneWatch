@@ -34,13 +34,13 @@ export default function ControlPanel({
   };
 
   return (
-    <div className="absolute left-4 top-24 bottom-24 w-80 bg-gray-800/90 backdrop-blur-sm rounded-xl border border-gray-700/50 overflow-hidden shadow-2xl">
+    <div className="absolute left-2 sm:left-4 top-20 sm:top-24 bottom-20 sm:bottom-24 w-72 sm:w-80 bg-gray-800/90 backdrop-blur-sm rounded-xl border border-gray-700/50 overflow-hidden shadow-2xl">
       
       {/* Active Storms Tab */}
       <div className="border-b border-gray-700/50">
-        <div className="px-4 py-3 bg-hurricane-600/20">
-          <h2 className="font-semibold flex items-center">
-            <i className="fas fa-eye text-hurricane-500 mr-2"></i>
+        <div className="px-3 sm:px-4 py-2 sm:py-3 bg-hurricane-600/20">
+          <h2 className="text-sm sm:text-base font-semibold flex items-center">
+            <i className="fas fa-eye text-hurricane-500 mr-2 text-sm"></i>
             Active Storms
             <span className="ml-auto bg-hurricane-500 text-white text-xs px-2 py-1 rounded-full" data-testid="text-storm-count">
               {hurricanes.length}
@@ -49,21 +49,21 @@ export default function ControlPanel({
         </div>
         
         {/* Storm List */}
-        <div className="max-h-64 overflow-y-auto">
+        <div className="max-h-48 sm:max-h-64 overflow-y-auto">
           {isLoading ? (
-            <div className="p-4 text-center text-gray-400">
+            <div className="p-3 sm:p-4 text-center text-gray-400 text-sm">
               <i className="fas fa-spinner fa-spin mr-2"></i>
               Loading storms...
             </div>
           ) : hurricanes.length === 0 ? (
-            <div className="p-4 text-center text-gray-400">
+            <div className="p-3 sm:p-4 text-center text-gray-400 text-sm">
               No active storms detected
             </div>
           ) : (
             hurricanes.map((hurricane) => (
               <div 
                 key={hurricane.id}
-                className="p-4 border-b border-gray-700/30 hover:bg-gray-700/30 transition-colors cursor-pointer"
+                className="p-3 sm:p-4 border-b border-gray-700/30 hover:bg-gray-700/30 transition-colors cursor-pointer"
                 onClick={() => onStormSelect(hurricane)}
                 data-testid={`card-storm-${hurricane.id}`}
               >

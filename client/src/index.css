@@ -5,6 +5,33 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Mobile-first responsive design */
+@layer base {
+  html {
+    font-size: 14px;
+    -webkit-text-size-adjust: 100%;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  @media (min-width: 768px) {
+    html {
+      font-size: 16px;
+    }
+  }
+  
+  /* Improved touch targets for mobile */
+  button, a, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Better mobile scrolling */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
 :root {
   --background: hsl(0 0% 100%);
   --foreground: hsl(210 25% 7.8431%);

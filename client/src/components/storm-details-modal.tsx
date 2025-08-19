@@ -38,16 +38,16 @@ export default function StormDetailsModal({ storm, onClose }: StormDetailsModalP
   };
 
   return (
-    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-60">
-      <div className="bg-gray-800/95 backdrop-blur-md rounded-2xl border border-gray-700/50 shadow-2xl w-96 max-w-[90vw] max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
+    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-60 p-2 sm:p-4">
+      <div className="bg-gray-800/95 backdrop-blur-md rounded-2xl border border-gray-700/50 shadow-2xl w-full sm:w-96 max-w-[95vw] sm:max-w-[90vw] max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
+        <div className="p-4 sm:p-6">
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-3">
-              <i className="fas fa-hurricane text-hurricane-500 text-2xl animate-spin" style={{ animation: 'spin 8s linear infinite' }}></i>
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <i className="fas fa-hurricane text-hurricane-500 text-xl sm:text-2xl animate-spin" style={{ animation: 'spin 8s linear infinite' }}></i>
               <div>
-                <h3 className="text-xl font-bold" data-testid="text-modal-storm-name">{storm.name}</h3>
-                <p className="text-sm text-gray-400" data-testid="text-modal-storm-category">{storm.category}</p>
+                <h3 className="text-lg sm:text-xl font-bold" data-testid="text-modal-storm-name">{storm.name}</h3>
+                <p className="text-xs sm:text-sm text-gray-400" data-testid="text-modal-storm-category">{storm.category}</p>
               </div>
             </div>
             <button 
@@ -60,10 +60,10 @@ export default function StormDetailsModal({ storm, onClose }: StormDetailsModalP
           </div>
 
           {/* Storm Stats */}
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="bg-gray-700/50 rounded-lg p-3">
+          <div className="grid grid-cols-2 gap-2 sm:gap-4 mb-4 sm:mb-6">
+            <div className="bg-gray-700/50 rounded-lg p-2 sm:p-3">
               <div className="text-xs text-gray-400 uppercase tracking-wider">Max Winds</div>
-              <div className={`text-2xl font-bold ${getCategoryColor()}`} data-testid="text-modal-wind-speed">
+              <div className={`text-lg sm:text-2xl font-bold ${getCategoryColor()}`} data-testid="text-modal-wind-speed">
                 {storm.windSpeed} mph
               </div>
             </div>
