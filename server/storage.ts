@@ -1,4 +1,4 @@
-import { type Hurricane, type InsertHurricane, type WeatherData, type InsertWeatherData, type OceanData, type InsertOceanData, type NhcData, type InsertNhcData } from "@shared/schema";
+import { type Hurricane, type InsertHurricane, type WeatherData, type InsertWeatherData, type OceanData, type InsertOceanData, type NhcData, type InsertNhcData, type HurricanePrediction, type InsertHurricanePrediction } from "@shared/schema";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -23,6 +23,11 @@ export interface IStorage {
   getNhcData(dataType?: string, timestamp?: Date): Promise<NhcData[]>;
   getLatestNhcData(dataType: string): Promise<NhcData | undefined>;
   createNhcData(data: InsertNhcData): Promise<NhcData>;
+  
+  // Hurricane prediction methods
+  getHurricanePredictions(hurricaneId?: string): Promise<HurricanePrediction[]>;
+  getLatestPrediction(hurricaneId: string): Promise<HurricanePrediction | undefined>;
+  createHurricanePrediction(data: InsertHurricanePrediction): Promise<HurricanePrediction>;
 }
 
 export class MemStorage implements IStorage {
@@ -30,12 +35,14 @@ export class MemStorage implements IStorage {
   private weatherData: Map<string, WeatherData>;
   private oceanData: Map<string, OceanData>;
   private nhcData: Map<string, NhcData>;
+  private predictions: Map<string, HurricanePrediction>;
 
   constructor() {
     this.hurricanes = new Map();
     this.weatherData = new Map();
     this.oceanData = new Map();
     this.nhcData = new Map();
+    this.predictions = new Map();
   }
 
   async getHurricanes(): Promise<Hurricane[]> {
@@ -166,6 +173,38 @@ export class MemStorage implements IStorage {
     };
     this.nhcData.set(id, data);
     return data;
+  }
+
+  async getHurricanePredictions(hurricaneId?: string): Promise<HurricanePrediction[]> {
+    const allPredictions = Array.from(this.predictions.values());
+    if (hurricaneId) {
+      return allPredictions.filter(p => p.hurricaneId === hurricaneId);
+    }
+    return allPredictions;
+  }
+
+  async getLatestPrediction(hurricaneId: string): Promise<HurricanePrediction | undefined> {
+    const predictions = await this.getHurricanePredictions(hurricaneId);
+    return predictions.sort((a, b) => 
+      (b.createdAt || new Date()).getTime() - (a.createdAt || new Date()).getTime()
+    )[0];
+  }
+
+  async createHurricanePrediction(insertPrediction: InsertHurricanePrediction): Promise<HurricanePrediction> {
+    const id = randomUUID();
+    const prediction: HurricanePrediction = {
+      ...insertPrediction,
+      id,
+      createdAt: new Date(),
+      landfallProbability: insertPrediction.landfallProbability || null,
+      landfallLocation: insertPrediction.landfallLocation || null,
+      landfallTime: insertPrediction.landfallTime || null,
+      analysis: insertPrediction.analysis || null,
+      pathCoordinates: insertPrediction.pathCoordinates || null,
+      intensityForecast: insertPrediction.intensityForecast || null,
+    };
+    this.predictions.set(id, prediction);
+    return prediction;
   }
 }
 

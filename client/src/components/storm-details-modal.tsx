@@ -1,4 +1,5 @@
 import type { Hurricane } from "@shared/schema";
+import { AIPredictionPanel } from "./ai-prediction-panel";
 
 interface StormDetailsModalProps {
   storm: Hurricane;
@@ -97,6 +98,14 @@ export default function StormDetailsModal({ storm, onClose }: StormDetailsModalP
                 </div>
               ))}
             </div>
+          </div>
+
+          {/* AI Predictions Section */}
+          <div className="mb-4">
+            <AIPredictionPanel 
+              hurricaneId={storm.id} 
+              hurricaneName={storm.name}
+            />
           </div>
 
           {/* Actions */}

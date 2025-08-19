@@ -2,12 +2,14 @@ import { NHCService } from "./nhc-service";
 import { GFSService } from "./gfs-service";
 import { CMEMSService } from "./cmems-service";
 import { KMLParser } from "./kml-parser";
+import { AIPredictionService } from "./ai-prediction-service";
 import { storage } from "../storage";
 
 export class DataScheduler {
   private nhcService = new NHCService();
   private gfsService = new GFSService();
   private cmemsService = new CMEMSService();
+  private aiPredictionService = new AIPredictionService();
   private updateInterval = 30 * 60 * 1000; // 30 minutes
 
   start() {
@@ -105,11 +107,53 @@ export class DataScheduler {
       
       console.log(`Created ${hurricanes.length} authentic hurricane record(s) from live NHC data`);
       
-      if (hurricanes.length > 0) {
+      // Auto-generate AI predictions for new hurricanes
+      if (hurricanes.length > 0 && process.env.OPENAI_API_KEY) {
+        await this.generatePredictionsForHurricanes(hurricanes);
         console.log(`Hurricane data: ${hurricanes[0].name} at ${hurricanes[0].latitude}, ${hurricanes[0].longitude}`);
       }
     } catch (error) {
       console.error("Error fetching authentic hurricane data:", error);
+    }
+  }
+
+  private async generatePredictionsForHurricanes(hurricaneData: any[]) {
+    try {
+      for (const data of hurricaneData) {
+        const hurricaneId = data.name.toLowerCase().replace(/\s+/g, '-');
+        
+        // Check if we already have a recent prediction
+        const existingPrediction = await storage.getLatestPrediction(hurricaneId);
+        const now = new Date();
+        const sixHoursAgo = new Date(now.getTime() - 6 * 60 * 60 * 1000);
+        
+        if (existingPrediction && existingPrediction.createdAt && existingPrediction.createdAt > sixHoursAgo) {
+          continue; // Skip if we have a recent prediction
+        }
+
+        // Generate new AI prediction
+        const weatherContext = await this.aiPredictionService.buildWeatherContext();
+        const prediction = await this.aiPredictionService.generateHurricanePrediction(data, weatherContext);
+
+        // Store the prediction
+        await storage.createHurricanePrediction({
+          hurricaneId,
+          predictionType: "auto-generated",
+          predictionData: prediction,
+          confidence: prediction.confidence,
+          pathCoordinates: prediction.pathPrediction.coordinates,
+          intensityForecast: prediction.intensityForecast,
+          landfallProbability: prediction.landfall.probability,
+          landfallLocation: prediction.landfall.estimatedLocation || null,
+          landfallTime: prediction.landfall.estimatedTime ? new Date(prediction.landfall.estimatedTime) : null,
+          analysis: prediction.analysis,
+          validUntil: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000)
+        });
+
+        console.log(`Generated AI prediction for ${data.name}`);
+      }
+    } catch (error) {
+      console.error("Error generating AI predictions:", error);
     }
   }
 

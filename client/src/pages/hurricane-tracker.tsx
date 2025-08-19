@@ -5,6 +5,7 @@ import TimeControls from "@/components/time-controls";
 import StormDetailsModal from "@/components/storm-details-modal";
 import DataAttribution from "@/components/data-attribution";
 import { DataSourceStatus } from "@/components/data-source-status";
+import { AIPredictionPanel } from "@/components/ai-prediction-panel";
 import { useHurricaneData } from "@/hooks/use-hurricane-data";
 import { useQuery } from "@tanstack/react-query";
 import type { Hurricane } from "@shared/schema";

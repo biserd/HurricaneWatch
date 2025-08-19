@@ -5,11 +5,13 @@ import { DataScheduler } from "./services/data-scheduler";
 import { NHCService } from "./services/nhc-service";
 import { GFSService } from "./services/gfs-service";
 import { CMEMSService } from "./services/cmems-service";
+import { AIPredictionService } from "./services/ai-prediction-service";
 
 const dataScheduler = new DataScheduler();
 const nhcService = new NHCService();
 const gfsService = new GFSService();
 const cmemsService = new CMEMSService();
+const aiPredictionService = new AIPredictionService();
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Start data scheduler
@@ -130,6 +132,103 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Hurricane prediction endpoints
+  app.get("/api/hurricanes/:id/predictions", async (req, res) => {
+    try {
+      const predictions = await storage.getHurricanePredictions(req.params.id);
+      res.json(predictions);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch predictions" });
+    }
+  });
+
+  app.post("/api/hurricanes/:id/predictions", async (req, res) => {
+    try {
+      const hurricane = await storage.getHurricane(req.params.id);
+      if (!hurricane) {
+        return res.status(404).json({ error: "Hurricane not found" });
+      }
+
+      // Build hurricane data for AI analysis
+      const hurricaneData = {
+        name: hurricane.name,
+        latitude: hurricane.latitude,
+        longitude: hurricane.longitude,
+        windSpeed: hurricane.windSpeed,
+        pressure: hurricane.pressure,
+        movement: hurricane.movement,
+        category: hurricane.category,
+        lastUpdate: hurricane.lastUpdate
+      };
+
+      // Get weather context
+      const weatherContext = await aiPredictionService.buildWeatherContext();
+      
+      // Generate AI prediction
+      const prediction = await aiPredictionService.generateHurricanePrediction(
+        hurricaneData,
+        weatherContext
+      );
+
+      // Store prediction in database
+      const savedPrediction = await storage.createHurricanePrediction({
+        hurricaneId: req.params.id,
+        predictionType: "comprehensive",
+        predictionData: prediction,
+        confidence: prediction.confidence,
+        pathCoordinates: prediction.pathPrediction.coordinates,
+        intensityForecast: prediction.intensityForecast,
+        landfallProbability: prediction.landfall.probability,
+        landfallLocation: prediction.landfall.estimatedLocation || null,
+        landfallTime: prediction.landfall.estimatedTime ? new Date(prediction.landfall.estimatedTime) : null,
+        analysis: prediction.analysis,
+        validUntil: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000) // 5 days
+      });
+
+      res.json(savedPrediction);
+    } catch (error) {
+      console.error("Error generating hurricane prediction:", error);
+      res.status(500).json({ error: "Failed to generate prediction" });
+    }
+  });
+
+  app.get("/api/hurricanes/:id/predictions/latest", async (req, res) => {
+    try {
+      const prediction = await storage.getLatestPrediction(req.params.id);
+      if (!prediction) {
+        return res.status(404).json({ error: "No predictions found" });
+      }
+      res.json(prediction);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch latest prediction" });
+    }
+  });
+
+  app.post("/api/hurricanes/:id/intensification-analysis", async (req, res) => {
+    try {
+      const hurricane = await storage.getHurricane(req.params.id);
+      if (!hurricane) {
+        return res.status(404).json({ error: "Hurricane not found" });
+      }
+
+      const hurricaneData = {
+        name: hurricane.name,
+        latitude: hurricane.latitude,
+        longitude: hurricane.longitude,
+        windSpeed: hurricane.windSpeed,
+        pressure: hurricane.pressure,
+        movement: hurricane.movement,
+        category: hurricane.category,
+        lastUpdate: hurricane.lastUpdate
+      };
+
+      const analysis = await aiPredictionService.analyzeIntensificationPotential(hurricaneData);
+      res.json(analysis);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to analyze intensification potential" });
+    }
+  });
+
   // Manual data refresh endpoint
   app.post("/api/refresh", async (req, res) => {
     try {
@@ -176,7 +275,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         lastOceanUpdate: latestOcean?.timestamp,
         status: "demo_mode",
         dataSources: dataSourceStatus,
-        message: 'Hurricane tracker ready - external data sources restricted in demo environment'
+        aiPredictions: {
+          enabled: !!process.env.OPENAI_API_KEY,
+          status: "ready"
+        },
+        message: 'Hurricane tracker ready with AI predictions - external data sources restricted in demo environment'
       });
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch status" });

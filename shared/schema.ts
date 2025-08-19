@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, real, integer, timestamp, boolean, json } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, real, integer, timestamp, boolean, json, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -51,6 +51,23 @@ export const nhcData = pgTable("nhc_data", {
   createdAt: timestamp("created_at").default(sql`now()`),
 });
 
+// Hurricane prediction schema
+export const hurricanePredictions = pgTable("hurricane_predictions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  hurricaneId: text("hurricane_id").notNull(),
+  predictionType: text("prediction_type").notNull(), // 'path', 'intensity', 'landfall'
+  predictionData: jsonb("prediction_data").notNull(),
+  confidence: real("confidence").notNull(),
+  pathCoordinates: jsonb("path_coordinates"), // Array of [lng, lat] coordinates
+  intensityForecast: jsonb("intensity_forecast"), // Wind speeds and pressures over time
+  landfallProbability: real("landfall_probability"),
+  landfallLocation: text("landfall_location"),
+  landfallTime: timestamp("landfall_time"),
+  analysis: text("analysis"),
+  createdAt: timestamp("created_at").default(sql`now()`),
+  validUntil: timestamp("valid_until").notNull(),
+});
+
 export const insertHurricaneSchema = createInsertSchema(hurricanes).omit({
   id: true,
 });
@@ -70,9 +87,16 @@ export const insertNhcDataSchema = createInsertSchema(nhcData).omit({
   createdAt: true,
 });
 
+export const insertHurricanePredictionSchema = createInsertSchema(hurricanePredictions).omit({
+  id: true,
+  createdAt: true,
+});
+
 export type Hurricane = typeof hurricanes.$inferSelect;
 export type InsertHurricane = z.infer<typeof insertHurricaneSchema>;
 export type WeatherData = typeof weatherData.$inferSelect;
+export type HurricanePrediction = typeof hurricanePredictions.$inferSelect;
+export type InsertHurricanePrediction = z.infer<typeof insertHurricanePredictionSchema>;
 export type InsertWeatherData = z.infer<typeof insertWeatherDataSchema>;
 export type OceanData = typeof oceanData.$inferSelect;
 export type InsertOceanData = z.infer<typeof insertOceanDataSchema>;
