@@ -1,7 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Eye, EyeOff } from "lucide-react";
-import { useMobile } from "@/hooks/use-mobile";
 
 interface MobileLayerToggleProps {
   activeLayers: Record<string, boolean>;
@@ -9,8 +8,18 @@ interface MobileLayerToggleProps {
 }
 
 export function MobileLayerToggle({ activeLayers, onLayerToggle }: MobileLayerToggleProps) {
-  const isMobile = useMobile();
+  const [isMobile, setIsMobile] = useState(false);
   const [showOverlays, setShowOverlays] = useState(true);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   if (!isMobile) return null;
 
